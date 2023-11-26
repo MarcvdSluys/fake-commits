@@ -1,7 +1,53 @@
 #+title: fake-commits
 
 This script creates fake commits.  It can be used to e.g. confuse GitHub's Contribution Calendar, which is a
-privacy issue and cannot be switched off ([[https://github.com/isaacs/github/issues/142][1]], [[https://github.com/orgs/community/discussions/4098][2]]) or just impress your (rather naive) employer with your 10.000
+privacy issue and cannot be hidden ([[https://github.com/isaacs/github/issues/142][1]], [[https://github.com/orgs/community/discussions/4098][2]]) or just impress your (rather naive) employer with your 10.000
 commits a day.
 
+* Usage strategies
+I can imagine at least two strategies:
+1) swamp your stats with ~100 commits per day for a number of years in a public repo to mask your real commits;
+   - it looks like the GitHub calendar may not swallow this...
+2) fill up your gaps (e.g. holidays that you don't want to show to the whole world) with a 'normal' number of
+   commits in a private repo and share anonymised commits with the world by:
+   1. going to your profile page;
+   2. selecting Contribution settings just above your Contributions calendar;
+   3. ticking Private contributions.
+
+
+* Setup your repo
+In order to create fake commits we need some changes to commit, and for that we need (in this case) two files.
+Make them as small as possible and non-identical, call them ~file1~ and ~file2~ and add them to your fake repo:
+#+begin_src bash
+  mkdir fake-repo && cd fake-repo
+  git init
+  
+  echo 1 > file1
+  echo 2 > file2
+  git add file1 file2
+#+end_src
+The changes between commits will consist of swapping the two files (which is why they shan't be identical).
+
+Then download ~fake-commits.py~ into your directory and make it executable.
+
+
+* Usage syntax
+#+begin_src bash
+  # Get some help:
+  ./fake-commits.py -h
+
+  # You went on holiday for a week and want to fill the gap with a moderate number of commits:
+  ./fake-commits.py -v -f 2001-03-10 -l 2001-03-17 -n 0.2  -P   # See what would happen
+  ./fake-commits.py -vv -f 2001-03-10 -l 2001-03-17 -n 0.2  -P  # See what would happen in more detail
+  ./fake-commits.py -v -f 2001-03-10 -l 2001-03-17 -n 0.2       # Actually create the commits
+
+  # If you think you should have committed more:
+  ./fake-commits.py -v -f 2001-03-10 -l 2001-03-17 -n 1  -P  # See what would happen
+
+  # If you're a maniac:
+  ./fake-commits.py -v -f 2001-03-10 -l 2001-03-17 -n 100  -P  # See what would happen
+
+  # If you're a maniac, but more variably so:
+  ./fake-commits.py -v -f 2001-03-10 -l 2001-03-17 -n 100 -r5 -P  # See what would happen
+#+end_src
 
