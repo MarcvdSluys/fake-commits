@@ -25,6 +25,18 @@ import sluyspy.numerics as snum
 import astrotool.date_time as asdt  # Pip install astrotool
 
 
+# Set the git repo to the current directory:
+path = '.'
+repo = Repo.init(path).git
+index = Repo.init(path).index
+
+# Specify the two files, and the temporary file:
+file1 = Path('file1')
+file2 = Path('file2')
+filet = Path('filet')
+
+
+
 def main():
     """Main function."""
     
@@ -33,66 +45,15 @@ def main():
     
     if args.number<1: exit(1)
     
-    path = '.'
-    repo = Repo.init(path).git
-    index = Repo.init(path).index
+    # Sort out the date range from the cli arguments:
+    first_date, last_date = get_date_range(args)
     
-    file1 = Path('file1')
-    file2 = Path('file2')
-    filet = Path('filet')
-    
-    
-    if args.first_date == 'today':
-        first_date = dt.date.today()
-    else:
-        try:
-            first_date = dt.datetime.strptime(args.first_date, '%Y-%m-%d').date()
-        except Exception as e:
-            scli.error('First date should be a string with the format YYYY-MM-DD: '+args.first_date+': '+str(e))
-    if args.last_date == 'today':
-        last_date = dt.date.today()
-    else:
-        try:
-            last_date = dt.datetime.strptime(args.last_date, '%Y-%m-%d').date()
-        except Exception as e:
-            scli.error('Last date should be a string with the format YYYY-MM-DD: '+args.last_date+': '+str(e))
-    
-    # Print date range:
-    if first_date == last_date:
-        print('Date for commits: %s.' % (first_date))
-    else:
-        print('Date range for commits: %s - %s.' % (first_date,last_date))
-        
     
     # Loop over date range:
     for date in rrule.rrule(rrule.DAILY, dtstart=first_date, until=last_date):
         
-        if args.random:
-            ncommits = snum.nint(max(np.random.normal(args.number,2*np.sqrt(args.number),1)[0],1))
-        else:
-            ncommits = args.number
-            
-        if args.verbosity > 0:
-            if args.verbosity > 1: print()
-            print('Creating %i fake commits for %s:' % (ncommits, date.strftime('%A %Y-%m-%d')))
-            
-        times = np.sort(np.random.uniform(0,24,ncommits))
-        
-        for time in times:  # ~1-1.5s for 100 commits
-            # Swap file1 and file2:
-            file1.rename(filet)
-            file2.rename(file1)
-            filet.rename(file2)
-            
-            timestr = asdt.hms_str_from_time(time)
-            dtm = dt.datetime.strptime(date.strftime('%Y-%0m-%0d '+timestr), '%Y-%m-%d %H:%M:%S').astimezone()
-            if args.verbosity>1: print('  commit time:', dtm)
-            # continue
-        
-            # Commit changes:
-            repo.add('file1')
-            repo.add('file2')
-            index.commit(message='Commit', author_date=dtm, commit_date=dtm, skip_hooks=True)
+        # Create the number of fake commits specified in the cli arguments for the given date:
+        create_fake_commits(date, args)
     
     # Collect garbage in git repo (gc is not in GitPython):
     subprocess.run(['git', 'gc', '--aggressive', '--prune=now'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -123,6 +84,78 @@ def get_cli_arguments():
     args = parser.parse_args()
     
     return args
+
+
+def get_date_range(args):
+    """Sort out the date range from the command-line arguments.
+    
+    Parameters:
+      args (struct):  Argparse struct with command-line arguments.
+    
+    Returns:
+      (tuple):  tuple containing two datetime.dates with the first and last date.
+    """
+    
+    if args.first_date == 'today':
+        first_date = dt.date.today()
+    else:
+        try:
+            first_date = dt.datetime.strptime(args.first_date, '%Y-%m-%d').date()
+        except Exception as e:
+            scli.error('First date should be a string with the format YYYY-MM-DD: '+args.first_date+': '+str(e))
+    if args.last_date == 'today':
+        last_date = dt.date.today()
+    else:
+        try:
+            last_date = dt.datetime.strptime(args.last_date, '%Y-%m-%d').date()
+        except Exception as e:
+            scli.error('Last date should be a string with the format YYYY-MM-DD: '+args.last_date+': '+str(e))
+    
+    # Print date range:
+    if first_date == last_date:
+        print('Date for commits: %s.' % (first_date.strftime('%A %Y-%m-%d')))
+    else:
+        print('Date range for commits: %s - %s.' % (first_date.strftime('%A %Y-%m-%d'), last_date.strftime('%A %Y-%m-%d')))
+    
+    return first_date, last_date
+
+
+def create_fake_commits(date, args):
+    """Create the number of fake commits specified in the cli arguments for the given date.
+    
+    Parameters:
+      date (datetime.date):  Date to create commits for.
+      args (struct):  Argparse struct with cli arguments, a.o. the number of commits.
+    """
+    
+    if args.random:
+        ncommits = snum.nint(max(np.random.normal(args.number,2*np.sqrt(args.number),1)[0],1))
+    else:
+        ncommits = args.number
+        
+    if args.verbosity > 0:
+        if args.verbosity > 1: print()
+        print('Creating %i fake commits for %s:' % (ncommits, date.strftime('%A %Y-%m-%d')))
+        
+    times = np.sort(np.random.uniform(0,24,ncommits))
+    
+    for time in times:  # ~1-1.5s for 100 commits
+        # Swap file1 and file2:
+        file1.rename(filet)
+        file2.rename(file1)
+        filet.rename(file2)
+        
+        timestr = asdt.hms_str_from_time(time)
+        dtm = dt.datetime.strptime(date.strftime('%Y-%0m-%0d '+timestr), '%Y-%m-%d %H:%M:%S').astimezone()
+        if args.verbosity>1: print('  commit time:', dtm)
+        # continue
+    
+        # Commit changes:
+        repo.add('file1')
+        repo.add('file2')
+        index.commit(message='Commit', author_date=dtm, commit_date=dtm, skip_hooks=True)
+    
+    return
 
 
 if __name__ == '__main__':
