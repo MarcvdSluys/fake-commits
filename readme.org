@@ -15,6 +15,12 @@ I can imagine at least two strategies:
    3. ticking Private contributions.
 
 
+* Dependencies
+#+begin_src bash
+  pip install argcomplete, astrotool, colored_traceback, GitPython, numpy, python_dateutil, sluyspy
+#+end_src
+
+
 * Setup your repo
 In order to create fake commits we need some changes to commit, and for that we need (in this case) two files.
 Make them as small as possible and non-identical, call them ~file1~ and ~file2~ and add them to your fake repo:
@@ -33,21 +39,31 @@ Then download ~fake-commits.py~ into your directory and make it executable.
 
 * Usage syntax
 #+begin_src bash
+  # Get it wrong:
+  ./fake-commits.py
+
   # Get some help:
   ./fake-commits.py -h
 
-  # You went on holiday for a week and want to fill the gap with a moderate number of commits:
-  ./fake-commits.py -v -f 2001-03-10 -l 2001-03-17 -n 0.2  -P   # See what would happen
-  ./fake-commits.py -vv -f 2001-03-10 -l 2001-03-17 -n 0.2  -P  # See what would happen in more detail
-  ./fake-commits.py -v -f 2001-03-10 -l 2001-03-17 -n 0.2       # Actually create the commits
+  # You went on holiday for a week and want to fill the gap with a moderate number of commits (~4 per day):
+  ./fake-commits.py 4 -f 2001-03-10 -l 2001-03-17            # See what would happen
+  ./fake-commits.py 4 -f 2001-03-10 -l 2001-03-17   -v       # See what would happen in more detail
+  ./fake-commits.py 4 -f 2001-03-10 -l 2001-03-17   -L       # Go LIVE and actually create the COMMITS
 
-  # If you think you should have committed more:
-  ./fake-commits.py -v -f 2001-03-10 -l 2001-03-17 -n 1  -P  # See what would happen
+  # If you think you should have committed a bit more (another ~1 per day):
+  ./fake-commits.py 1 -f 2001-03-10 -l 2001-03-17            # See what would happen
 
   # If you're a maniac:
-  ./fake-commits.py -v -f 2001-03-10 -l 2001-03-17 -n 100  -P  # See what would happen
+  ./fake-commits.py 100 -f 2001-03-10 -l 2001-03-17  -v      # See what would happen in detail
 
   # If you're a maniac, but more variably so:
-  ./fake-commits.py -v -f 2001-03-10 -l 2001-03-17 -n 100 -r5 -P  # See what would happen
+  ./fake-commits.py 100 -f 2001-03-10 -l 2001-03-17  -v -r5  # See what would happen in detail
 #+end_src
+
+* Licence
+This is free software: you can redistribute it and/or modify it under the terms of the European Union Public
+Licence 1.2 (EUPL 1.2).  This software is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+EU Public Licence for more details.  You should have received a copy of the European Union Public Licence
+along with this code.  If not, see <https://www.eupl.eu/1.2/en/>.
 
